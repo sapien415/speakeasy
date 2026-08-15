@@ -2,8 +2,11 @@
    SPEAKEASY — shared site chrome + behaviour (loaded on every page)
    Injects header/footer/ambient layers, then wires nav, reveals, tilt,
    menu tabs, forms, hours badge, toast. Page-specific JS lives elsewhere.
+   Every string it writes carries a data-i18n key — see js/i18n.js + js/fr.js.
    ========================================================================= */
 'use strict';
+
+import { apply as applyI18n, getLang, switcherHTML, t, wireSwitchers } from './i18n.js';
 
 export const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 export const finePointer  = matchMedia('(pointer: fine)').matches;
@@ -12,15 +15,15 @@ export const $$ = (s, c = document) => Array.from(c.querySelectorAll(s));
 const TEL = '+16132416221';
 const OPENTABLE = 'https://www.opentable.com/r/speakeasy-tapas-lounge-ottawa';
 
-/* pages, in nav order */
+/* pages, in nav order: [page, href, English label, translation key] */
 const NAV = [
-  ['home', 'index.html', 'Home'],
-  ['drinks', 'drinks.html', 'Drinks'],
-  ['menu', 'menu.html', 'Menu'],
-  ['events', 'events.html', 'Events'],
-  ['private', 'private.html', 'Private Events'],
-  ['tour', 'tour.html', '3D Tour'],
-  ['visit', 'visit.html', 'Visit'],
+  ['home', 'index.html', 'Home', 'nav.home'],
+  ['drinks', 'drinks.html', 'Drinks', 'nav.drinks'],
+  ['menu', 'menu.html', 'Menu', 'nav.menu'],
+  ['events', 'events.html', 'Events', 'nav.events'],
+  ['private', 'private.html', 'Private Events', 'nav.private'],
+  ['tour', 'tour.html', '3D Tour', 'nav.tour'],
+  ['visit', 'visit.html', 'Visit', 'nav.visit'],
 ];
 
 /* ---------- toast (exported) ---------- */
@@ -49,41 +52,44 @@ function injectAmbient() {
 /* ---------- header + footer ---------- */
 function injectChrome() {
   const page = document.body.dataset.page || 'home';
-  const link = ([p, href, label, sub]) => {
+  const link = ([p, href, label, key, sub]) => {
     if (sub) {
       const active = ['menu', ...sub.map(s => s[0])].includes(page) ? ' active' : '';
-      return `<span class="has-sub"><a class="${active}" data-p="${p}" href="${sub[0][1]}">${label}</a>`
-        + `<span class="nav__sub">${sub.map(s => `<a data-p="${s[0]}" href="${s[1]}">${s[2]}</a>`).join('')}</span></span>`;
+      return `<span class="has-sub"><a class="${active}" data-p="${p}" data-i18n="${key}" href="${sub[0][1]}">${label}</a>`
+        + `<span class="nav__sub">${sub.map(s => `<a data-p="${s[0]}" data-i18n="${s[3]}" href="${s[1]}">${s[2]}</a>`).join('')}</span></span>`;
     }
-    return `<a class="${page === p ? 'active' : ''}" data-p="${p}" href="${href}">${label}</a>`;
+    return `<a class="${page === p ? 'active' : ''}" data-p="${p}" data-i18n="${key}" href="${href}">${label}</a>`;
   };
 
   const header = $('#nav');
   if (header) header.innerHTML =
     `<div class="nav__inner">
-      <a class="nav__brand" href="index.html" aria-label="Speakeasy Tapas Lounge — home">
+      <a class="nav__brand" href="index.html" aria-label="Speakeasy Tapas Lounge — home" data-i18n-attr="aria-label=nav.brand">
         <img src="assets/logo.png" alt="" width="44" height="44" class="nav__logo" />
         <span class="nav__name">Speakeasy<small>Tapas&nbsp;Lounge</small></span>
       </a>
-      <nav class="nav__links" aria-label="Sections">${NAV.map(link).join('')}</nav>
-      <a class="nav__book" href="${OPENTABLE}" target="_blank" rel="noopener">Book</a>
+      <nav class="nav__links" aria-label="Sections" data-i18n-attr="aria-label=nav.sections">${NAV.map(link).join('')}</nav>
+      ${switcherHTML('nav')}
+      <a class="nav__book" href="${OPENTABLE}" target="_blank" rel="noopener" data-i18n="nav.book">Book</a>
       <a class="nav__call" href="tel:${TEL}">
         <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M6.6 10.8a15.5 15.5 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11 11 0 0 0 3.5.56 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.2a1 1 0 0 1 1 1 11 11 0 0 0 .56 3.5 1 1 0 0 1-.24 1z"/></svg>
         <span>613-241-6221</span></a>
-      <button class="nav__toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu"><span></span><span></span><span></span></button>
+      <button class="nav__toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu" data-i18n-attr="aria-label=nav.openMenu"><span></span><span></span><span></span></button>
     </div>`;
 
   // mobile overlay
   const mob = document.createElement('div');
   mob.id = 'mobileMenu'; mob.className = 'mobile'; mob.hidden = true;
-  const flat = NAV.flatMap(n => n[3] ? n[3] : [n]).filter(n => n[1]);
-  mob.innerHTML = `<nav class="mobile__nav" aria-label="Mobile">${flat.map(n => `<a href="${n[1]}">${n[2]}</a>`).join('')}<a class="mobile__call" href="tel:${TEL}">Call 613-241-6221</a></nav>`;
+  const flat = NAV.flatMap(n => n[4] ? n[4] : [n]).filter(n => n[1]);
+  mob.innerHTML = `<nav class="mobile__nav" aria-label="Mobile" data-i18n-attr="aria-label=nav.mobile">`
+    + flat.map(n => `<a href="${n[1]}" data-i18n="${n[3]}">${n[2]}</a>`).join('')
+    + `<a class="mobile__call" href="tel:${TEL}" data-i18n="nav.callLong">Call 613-241-6221</a>${switcherHTML('mobile')}</nav>`;
   document.body.appendChild(mob);
 
   // sticky mobile reserve bar
   const mr = document.createElement('div');
   mr.className = 'mobile-reserve';
-  mr.innerHTML = `<a class="mr__book" href="${OPENTABLE}" target="_blank" rel="noopener">Book a table</a><a href="tel:${TEL}"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6.6 10.8a15.5 15.5 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11 11 0 0 0 3.5.56 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.2a1 1 0 0 1 1 1 11 11 0 0 0 .56 3.5 1 1 0 0 1-.24 1z"/></svg>Reserve · 613-241-6221</a>`;
+  mr.innerHTML = `<a class="mr__book" href="${OPENTABLE}" target="_blank" rel="noopener" data-i18n="nav.bookTable">Book a table</a><a href="tel:${TEL}"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6.6 10.8a15.5 15.5 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11 11 0 0 0 3.5.56 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.2a1 1 0 0 1 1 1 11 11 0 0 0 .56 3.5 1 1 0 0 1-.24 1z"/></svg><span data-i18n="nav.reserveCall">Reserve · 613-241-6221</span></a>`;
   document.body.appendChild(mr);
 
   const footer = $('.footer');
@@ -92,16 +98,16 @@ function injectChrome() {
       <div class="footer__brand">
         <img src="assets/logo.png" alt="" width="72" height="72" id="footLogo" />
         <p class="footer__name">Speakeasy <span>Tapas Lounge</span></p>
-        <p class="footer__tag">“ This must be the place ”</p>
+        <p class="footer__tag" data-i18n="hero.tag">“ This must be the place ”</p>
       </div>
-      <nav class="footer__links" aria-label="Footer">${flat.map(n => `<a href="${n[1]}">${n[2]}</a>`).join('')}</nav>
+      <nav class="footer__links" aria-label="Footer" data-i18n-attr="aria-label=nav.footer">${flat.map(n => `<a href="${n[1]}" data-i18n="${n[3]}">${n[2]}</a>`).join('')}</nav>
       <div class="footer__meta">
-        <p>55 York Street, Ottawa · K1N 9B7</p>
+        <p data-i18n="foot.address">55 York Street, Ottawa · K1N 9B7</p>
         <p><a href="tel:${TEL}">613-241-6221</a></p>
         <p class="footer__social"><a href="https://www.instagram.com/speakeasy_ottawa/?hl=en" target="_blank" rel="noopener" aria-label="Instagram">Instagram</a> · <a href="#" aria-label="Facebook">Facebook</a></p>
       </div>
     </div>
-    <p class="footer__fine">© <span id="year"></span> Speakeasy Tapas Lounge · ByWard Market, Ottawa · Please enjoy responsibly.</p>`;
+    <p class="footer__fine" data-i18n-html="foot.fine">© <span id="year"></span> Speakeasy Tapas Lounge · ByWard Market, Ottawa · Please enjoy responsibly.</p>`;
 }
 
 /* ---------- nav behaviour ---------- */
@@ -168,11 +174,12 @@ function forms() {
     let ok = true;
     [[name, name.value.trim().length > 1], [email, emailOK(email.value)], [msg, msg.value.trim().length > 3]]
       .forEach(([f, v]) => { f.closest('.field').classList.toggle('invalid', !v); if (!v) ok = false; });
-    if (!ok) { note.textContent = 'Please complete the highlighted fields.'; note.classList.add('err'); return; }
-    note.classList.remove('err'); note.textContent = 'Thank you — we’ll be in touch soon.';
-    toast('Message sent · tell no one');
+    if (!ok) { note.textContent = t('form.err', 'Please complete the highlighted fields.'); note.classList.add('err'); return; }
+    note.classList.remove('err'); note.textContent = t('form.thanks', 'Thank you — we’ll be in touch soon.');
+    toast(t('toast.sent', 'Message sent · tell no one'));
     const body = encodeURIComponent(`${msg.value}\n\n— ${name.value} (${email.value})`);
-    setTimeout(() => { location.href = `mailto:hello@speakeasytapas.ca?subject=Website%20enquiry&body=${body}`; }, 600);
+    const subject = encodeURIComponent(t('mail.enquiry', 'Website enquiry'));
+    setTimeout(() => { location.href = `mailto:hello@speakeasytapas.ca?subject=${subject}&body=${body}`; }, 600);
     contact.reset();
   });
   const news = $('#newsForm');
@@ -180,9 +187,9 @@ function forms() {
     e.preventDefault();
     const email = $('#nf-email'), note = $('#nfNote'), v = emailOK(email.value);
     email.closest('.field').classList.toggle('invalid', !v);
-    if (!v) { note.textContent = 'A valid email, please.'; note.classList.add('err'); return; }
-    note.classList.remove('err'); note.textContent = 'You’re on the list. Welcome to the inner circle.';
-    toast('Subscribed · welcome in'); news.reset();
+    if (!v) { note.textContent = t('form.errEmail', 'A valid email, please.'); note.classList.add('err'); return; }
+    note.classList.remove('err'); note.textContent = t('form.subscribed', 'You’re on the list. Welcome to the inner circle.');
+    toast(t('toast.subscribed', 'Subscribed · welcome in')); news.reset();
   });
 }
 
@@ -192,23 +199,47 @@ export const SCHEDULE = {
   2: { open: 16 * 60, close: 22 * 60 + 30 }, 3: { open: 16 * 60, close: 22 * 60 + 30 }, 4: { open: 16 * 60, close: 22 * 60 + 30 },
   5: { open: 16 * 60, close: 24 * 60 }, 6: { open: 16 * 60, close: 24 * 60 },
 };
+const DAY_NAMES = {
+  en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+  fr: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
+};
+const DAY_SHORT = {
+  en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+  fr: ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'],
+};
 function hours() {
   const status = $('#openStatus'), tbody = $('#hoursTable tbody');
   if (!status && !tbody) return;
-  const NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const fmt = (m) => { m %= 1440; let h = (m / 60) | 0, mm = m % 60, ap = h >= 12 ? 'PM' : 'AM', hh = h % 12 || 12; return mm ? `${hh}:${String(mm).padStart(2, '0')} ${ap}` : `${hh} ${ap}`; };
-  const label = (d) => { const s = SCHEDULE[d]; return s ? `${fmt(s.open)} – ${s.close >= 1440 ? 'Midnight' : fmt(s.close)}` : 'Closed'; };
+  const fr = getLang() === 'fr';
+  const NAMES = fr ? DAY_NAMES.fr : DAY_NAMES.en;
+  const SHORT = fr ? DAY_SHORT.fr : DAY_SHORT.en;
+  /* English: 10:30 PM · French (Canada): 22 h 30 */
+  const fmt = (m) => {
+    m %= 1440; const h = (m / 60) | 0, mm = m % 60;
+    if (fr) return mm ? `${h} h ${String(mm).padStart(2, '0')}` : `${h} h`;
+    const ap = h >= 12 ? 'PM' : 'AM', hh = h % 12 || 12;
+    return mm ? `${hh}:${String(mm).padStart(2, '0')} ${ap}` : `${hh} ${ap}`;
+  };
+  const midnight = () => t('hours.midnight', 'Midnight');
+  const label = (d) => { const s = SCHEDULE[d]; return s ? `${fmt(s.open)} – ${s.close >= 1440 ? midnight() : fmt(s.close)}` : t('hours.closed', 'Closed'); };
   const tor = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Toronto' }));
   const day = tor.getDay(), mins = tor.getHours() * 60 + tor.getMinutes(), s = SCHEDULE[day];
   const isOpen = !!s && mins >= s.open && mins < s.close;
   if (status) {
     const txt = $('.status__text', status);
-    if (isOpen) { status.classList.add('open'); txt.textContent = `Open now · until ${s.close >= 1440 ? 'midnight' : fmt(s.close)}`; }
-    else {
+    status.classList.remove('open', 'closed');
+    if (isOpen) {
+      status.classList.add('open');
+      const until = s.close >= 1440 ? t('hours.midnightLower', 'midnight') : fmt(s.close);
+      txt.textContent = `${t('hours.openNow', 'Open now')} · ${t('hours.until', 'until')} ${until}`;
+    } else {
       status.classList.add('closed');
       let next = (s && mins < s.open) ? { d: day, m: s.open } : null;
       if (!next) for (let i = 1; i <= 7; i++) { const dd = (day + i) % 7; if (SCHEDULE[dd]) { next = { d: dd, m: SCHEDULE[dd].open }; break; } }
-      txt.textContent = next ? `Closed · opens ${next.d === day ? 'today' : NAMES[next.d].slice(0, 3)} ${fmt(next.m)}` : 'Closed';
+      const when = next && (next.d === day ? t('hours.today', 'today') : SHORT[next.d]);
+      txt.textContent = next
+        ? `${t('hours.closed', 'Closed')} · ${t('hours.opens', 'opens')} ${when} ${fr ? 'à ' : ''}${fmt(next.m)}`
+        : t('hours.closed', 'Closed');
     }
   }
   if (tbody) tbody.innerHTML = [2, 3, 4, 5, 6, 0, 1].map(d =>
@@ -216,10 +247,11 @@ function hours() {
 }
 
 /* ---------- misc: year + easter egg ---------- */
+const setYear = () => { const y = $('#year'); if (y) y.textContent = new Date().getFullYear(); };
 function misc() {
-  const y = $('#year'); if (y) y.textContent = new Date().getFullYear();
-  let clicks = 0, t;
-  $('#footLogo')?.addEventListener('click', () => { if (++clicks >= 3) { clicks = 0; toast('Password accepted. Tell no one.'); } clearTimeout(t); t = setTimeout(() => (clicks = 0), 1200); });
+  setYear();
+  let clicks = 0, timer;
+  $('#footLogo')?.addEventListener('click', () => { if (++clicks >= 3) { clicks = 0; toast(t('toast.password', 'Password accepted. Tell no one.')); } clearTimeout(timer); timer = setTimeout(() => (clicks = 0), 1200); });
 }
 
 /* ---------- 3D tour fullscreen ---------- */
@@ -236,11 +268,23 @@ function tourFullscreen() {
 function tourSetups() {
   const frame = $('.tour-embed iframe');
   const btns = $$('.tour-setups .setup[data-layout]');
+  /* the tour speaks both languages too — hand it the current one */
+  const tourURL = (layout) => `tour/index.html?autoenter&lang=${getLang()}` + (layout ? `&layout=${layout}` : '');
+  const current = () => $('.tour-setups .setup.is-active')?.dataset.layout || '';
+  if (frame) {
+    frame.src = tourURL(current());
+    addEventListener('se:lang', () => { frame.src = tourURL(current()); });
+    $$('.setup--fs').forEach(a => {
+      const href = () => `tour/index.html?lang=${getLang()}`;
+      a.href = href();
+      addEventListener('se:lang', () => (a.href = href()));
+    });
+  }
   if (frame && btns.length) {
     btns.forEach(b => b.addEventListener('click', () => {
       btns.forEach(x => x.classList.remove('is-active'));
       b.classList.add('is-active');
-      frame.src = `tour/index.html?autoenter&layout=${b.dataset.layout}`;
+      frame.src = tourURL(b.dataset.layout);
     }));
   }
 
@@ -258,14 +302,15 @@ function tourSetups() {
     ];
     let ok = true;
     checks.forEach(([f, valid]) => { f.closest('.field').classList.toggle('invalid', !valid); if (!valid) ok = false; });
-    if (!ok) { note.textContent = 'Please complete the highlighted fields.'; note.classList.add('err'); return; }
+    if (!ok) { note.textContent = t('form.err', 'Please complete the highlighted fields.'); note.classList.add('err'); return; }
     note.classList.remove('err');
-    note.textContent = 'Request sent — we’ll confirm by email today.';
-    toast('Date requested · we’ll be in touch');
+    note.textContent = t('form.requested', 'Request sent — we’ll confirm by email today.');
+    toast(t('toast.requested', 'Date requested · we’ll be in touch'));
+    const subject = t('mail.private', 'Private event request');
     const body = encodeURIComponent(
-      `Private event request\n\nDate: ${get('bk-date').value}\nGuests: ${get('bk-guests').value}\n` +
-      `Setup: ${get('bk-setup').value}\n\n${get('bk-notes').value}\n\n— ${get('bk-name').value} (${get('bk-email').value})`);
-    setTimeout(() => { location.href = `mailto:hello@speakeasytapas.ca?subject=Private%20event%20request&body=${body}`; }, 600);
+      `${subject}\n\n${t('form.date', 'Date')}: ${get('bk-date').value}\n${t('form.guests', 'Guests')}: ${get('bk-guests').value}\n` +
+      `${t('form.setup', 'Setup')}: ${get('bk-setup').value}\n\n${get('bk-notes').value}\n\n— ${get('bk-name').value} (${get('bk-email').value})`);
+    setTimeout(() => { location.href = `mailto:hello@speakeasytapas.ca?subject=${encodeURIComponent(subject)}&body=${body}`; }, 600);
     form.reset();
   });
 }
@@ -298,4 +343,9 @@ function tabs() {
 /* ---------- boot ---------- */
 injectAmbient();
 injectChrome();
+applyI18n();          // translate the freshly injected header/footer
+wireSwitchers();
 nav(); reveal(); tilt(); tabs(); forms(); hours(); misc(); tourFullscreen(); tourSetups();
+
+/* re-run whatever JS writes text of its own when the language changes */
+addEventListener('se:lang', () => { setYear(); hours(); });

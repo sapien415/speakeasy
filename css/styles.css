@@ -1091,3 +1091,33 @@ html{scrollbar-color:var(--gold-lo) #0a0a0b;scrollbar-width:thin}
 /* ---- combined @speakeasy_ottawa grid ---- */
 .insta__grid--wide{grid-template-columns:repeat(3,1fr);max-width:1000px;margin-inline:auto;gap:12px}
 @media (max-width:860px){.insta__grid--wide{grid-template-columns:repeat(2,1fr)}}
+
+/* =========================================================================
+   LANGUAGE (EN · FR)
+   The switch in the header / mobile menu, plus the Canadian-French way of
+   writing a price: 18 $ rather than $18.
+   ========================================================================= */
+.lang{display:inline-flex;align-items:center;gap:6px;flex:none}
+.lang__btn{font-family:var(--f-deco);letter-spacing:.14em;text-transform:uppercase;font-size:.72rem;
+  color:var(--cream-2);opacity:.7;padding:5px 2px;border-bottom:1px solid transparent;transition:color .25s,opacity .25s,border-color .25s}
+.lang__btn:hover{color:var(--gold-hi);opacity:1}
+.lang__btn.is-active{color:var(--gold-hi);opacity:1;border-bottom-color:var(--gold)}
+.lang__sep{color:var(--line);opacity:.7;font-size:.72rem;line-height:1}
+.lang--mobile{margin-top:26px;justify-content:center;gap:14px}
+.lang--mobile .lang__btn{font-size:1rem;letter-spacing:.22em;padding:6px 4px}
+
+/* French labels run longer than English, and the switch takes room of its own:
+   tighten the tracking, and fold the bar into the menu button a little earlier
+   so neither language wraps mid-nav. */
+html[lang^="fr"] .nav__links{gap:22px}
+html[lang^="fr"] .nav__links a{letter-spacing:.1em}
+@media (max-width:1260px){
+  .nav__links{display:none}                    /* links move into the menu button */
+  .nav__toggle{display:flex;margin-left:0}
+  .lang--nav{margin-left:auto;margin-right:2px}
+}
+
+/* prices: "$18" in English, "18 $" in French — .price--txt writes its own */
+html[lang^="fr"] .price::before{content:none}
+html[lang^="fr"] .price::after{content:" $"}
+html[lang^="fr"] .price--txt::after{content:none}

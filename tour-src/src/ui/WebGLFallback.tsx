@@ -1,3 +1,5 @@
+import { L } from '../i18n'
+
 const BOOKING_URL = 'https://speakeasyottawa.com/host-your-event'
 
 /**
@@ -21,11 +23,14 @@ export function WebGLFallback() {
           Speakeasy Tapas Lounge
         </h1>
         <p style={{ color: 'var(--cream-dim)', lineHeight: 1.6 }}>
-          Your browser can&apos;t display the interactive 3D tour, but the room is real: a
-          candlelit lounge in Ottawa&apos;s ByWard Market with a glowing bar, live-jazz stage and
-          seating for 60 (or 100 standing) — yours for private events.
+          {L(
+            'Your browser can\u2019t display the interactive 3D tour, but the room is real: a candlelit lounge in Ottawa\u2019s ByWard Market with a glowing bar, live-jazz stage and seating for 60 (or 100 standing) — yours for private events.',
+            'Votre navigateur ne peut pas afficher la visite 3D interactive, mais la salle, elle, est bien réelle : un lounge aux chandelles dans le marché By d\u2019Ottawa, avec un bar lumineux, une scène de jazz et 60 places assises (ou 100 debout) — à vous pour vos événements privés.',
+          )}
         </p>
-        <p style={{ color: 'var(--cream-dim)' }}>55 York St, Ottawa · +1 613-241-6221</p>
+        <p style={{ color: 'var(--cream-dim)' }}>
+          {L('55 York St, Ottawa · +1 613-241-6221', '55, rue York, Ottawa · +1 613-241-6221')}
+        </p>
         <a
           href={BOOKING_URL}
           target="_blank"
@@ -42,7 +47,7 @@ export function WebGLFallback() {
             fontSize: 14,
           }}
         >
-          Book this venue
+          {L('Book this venue', 'Réserver la salle')}
         </a>
       </div>
     </div>

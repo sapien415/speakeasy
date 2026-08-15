@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import '@fontsource/limelight/index.css'
 import './ui/ui.css'
 import App from './App'
+import { applyDocumentLang } from './i18n'
 import { WebGLFallback } from './ui/WebGLFallback'
 
 function webglSupported(): boolean {
@@ -13,6 +14,8 @@ function webglSupported(): boolean {
     return false
   }
 }
+
+applyDocumentLang()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>{webglSupported() ? <App /> : <WebGLFallback />}</StrictMode>,

@@ -1,3 +1,4 @@
+import { L } from '../i18n'
 import type { ColliderSpec, Vec2 } from './floorplan'
 
 /**
@@ -81,23 +82,32 @@ const showcaseItems: FurnitureItem[] = [
 export const LAYOUTS: Record<LayoutId, LayoutPreset> = {
   dinner: {
     id: 'dinner',
-    label: 'Intimate Dining',
-    capacity: '60 seated',
-    blurb: 'Candlelit tapas dinners with a fully customizable menu.',
+    label: L('Intimate Dining', 'Repas intime'),
+    capacity: L('60 seated', '60 places assises'),
+    blurb: L(
+      'Candlelit tapas dinners with a fully customizable menu.',
+      'Des soupers tapas aux chandelles, avec un menu entièrement personnalisable.',
+    ),
     items: dinnerItems,
   },
   cocktail: {
     id: 'cocktail',
-    label: 'Cocktail Reception',
-    capacity: '100 standing',
-    blurb: 'Open floor, high-top tables and an open-bar welcome.',
+    label: L('Cocktail Reception', 'Réception cocktail'),
+    capacity: L('100 standing', '100 personnes debout'),
+    blurb: L(
+      'Open floor, high-top tables and an open-bar welcome.',
+      'Plancher dégagé, tables hautes et accueil au bar ouvert.',
+    ),
     items: cocktailItems,
   },
   showcase: {
     id: 'showcase',
-    label: 'Artistic Showcase',
-    capacity: 'Gallery · up to 100',
-    blurb: 'Gallery-style layout that puts artwork centre stage.',
+    label: L('Artistic Showcase', 'Vitrine artistique'),
+    capacity: L('Gallery · up to 100', 'Galerie · jusqu’à 100'),
+    blurb: L(
+      'Gallery-style layout that puts artwork centre stage.',
+      'Un aménagement façon galerie qui met les œuvres à l’avant-plan.',
+    ),
     items: showcaseItems,
   },
 }

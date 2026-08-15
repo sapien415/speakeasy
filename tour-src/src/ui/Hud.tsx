@@ -1,4 +1,5 @@
 import { BOOKING_URL } from '../data/hotspots'
+import { L } from '../i18n'
 import { LAYOUTS, LAYOUT_IDS } from '../data/layouts'
 import { useVenueStore } from '../state/store'
 
@@ -16,8 +17,8 @@ export function Hud() {
         <div className="hud-actions">
           <button
             className={`hud-btn${hotspotsVisible ? ' on' : ''}`}
-            title="Toggle info markers"
-            aria-label="Toggle info markers"
+            title={L('Toggle info markers', 'Afficher ou masquer les repères')}
+            aria-label={L('Toggle info markers', 'Afficher ou masquer les repères')}
             onClick={() => setHotspotsVisible(!hotspotsVisible)}
           >
             ⓘ
@@ -26,7 +27,7 @@ export function Hud() {
       </div>
 
       <div className="hud-bottom">
-        <div className="layout-switch" role="group" aria-label="Event layout">
+        <div className="layout-switch" role="group" aria-label={L('Event layout', 'Configuration de la salle')}>
           {LAYOUT_IDS.map((id) => (
             <button
               key={id}
@@ -39,7 +40,7 @@ export function Hud() {
           ))}
         </div>
         <a className="cta" href={BOOKING_URL} target="_blank" rel="noopener">
-          Book this venue ↗
+          {L('Book this venue ↗', 'Réserver la salle ↗')}
         </a>
       </div>
     </>

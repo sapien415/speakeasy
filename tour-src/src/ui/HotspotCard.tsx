@@ -1,5 +1,6 @@
 import { BOOKING_URL, HOTSPOTS } from '../data/hotspots'
 import { LAYOUTS } from '../data/layouts'
+import { L } from '../i18n'
 import { useVenueStore } from '../state/store'
 
 /** Slide-in detail card for the active hotspot (right sheet / mobile bottom). */
@@ -17,10 +18,10 @@ export function HotspotCard() {
     <>
       <div className="card-scrim" onClick={close} />
       <div className="hotspot-card" role="dialog" aria-label={spot.title}>
-        <button className="card-close" onClick={close} aria-label="Close">
+        <button className="card-close" onClick={close} aria-label={L('Close', 'Fermer')}>
           ✕
         </button>
-        <p className="card-eyebrow">The Venue</p>
+        <p className="card-eyebrow">{L('The Venue', 'La salle')}</p>
         <h2 className="card-title">{spot.title}</h2>
         {spot.paragraphs.map((p, i) => (
           <p className="card-p" key={i}>
@@ -46,11 +47,14 @@ export function HotspotCard() {
                 close()
               }}
             >
-              View in {LAYOUTS[spot.linkLayout].label} layout
+              {L(
+                `View in ${LAYOUTS[spot.linkLayout].label} layout`,
+                `Voir la configuration ${LAYOUTS[spot.linkLayout].label}`,
+              )}
             </button>
           )}
           <a className="cta" href={BOOKING_URL} target="_blank" rel="noopener">
-            Book this venue ↗
+            {L('Book this venue ↗', 'Réserver la salle ↗')}
           </a>
         </div>
       </div>

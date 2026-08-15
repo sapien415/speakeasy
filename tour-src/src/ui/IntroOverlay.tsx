@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { controlsApi } from '../controls/PlayerControls'
+import { L } from '../i18n'
 import { VENUE } from '../data/hotspots'
 import { useVenueStore } from '../state/store'
 
@@ -19,26 +20,35 @@ export function IntroOverlay() {
   return (
     <div className={`intro${leaving ? ' leaving' : ''}`}>
       <div className="intro-card">
-        <p className="intro-eyebrow">ByWard Market · Ottawa</p>
+        <p className="intro-eyebrow">{L('ByWard Market · Ottawa', 'Marché By · Ottawa')}</p>
         <h1 className="intro-title">
           Speakeasy <span className="amp">·</span> Tapas Lounge
         </h1>
         <p className="intro-sub">
-          Step inside and walk the room — the glowing bar, the candlelit tables and the live-jazz
-          stage. Picture your private event in the space before you book it.
+          {L(
+            'Step inside and walk the room — the glowing bar, the candlelit tables and the live-jazz stage. Picture your private event in the space before you book it.',
+            'Entrez et parcourez la salle — le bar lumineux, les tables aux chandelles et la scène de jazz. Imaginez-y votre événement privé avant de réserver.',
+          )}
         </p>
-        <p className="intro-cap">Seats 60 · Stands 100 · Fully customizable</p>
+        <p className="intro-cap">
+          {L(
+            'Seats 60 · Stands 100 · Fully customizable',
+            '60 places assises · 100 debout · Entièrement personnalisable',
+          )}
+        </p>
         <button className="btn-primary" onClick={enter}>
-          Enter the Lounge
+          {L('Enter the Lounge', 'Entrer dans le lounge')}
         </button>
         <p className="intro-hints">
           {touch ? (
             <>
-              <b>Left thumb</b> to walk · <b>drag right</b> to look
+              <b>{L('Left thumb', 'Pouce gauche')}</b> {L('to walk', 'pour marcher')} ·{' '}
+              <b>{L('drag right', 'glissez à droite')}</b> {L('to look', 'pour regarder')}
             </>
           ) : (
             <>
-              <b>W A S D</b> to walk · <b>mouse</b> to look · <b>Shift</b> to hurry
+              <b>W A S D</b> {L('to walk', 'pour marcher')} · <b>{L('mouse', 'souris')}</b>{' '}
+              {L('to look', 'pour regarder')} · <b>Shift</b> {L('to hurry', 'pour presser le pas')}
             </>
           )}
         </p>

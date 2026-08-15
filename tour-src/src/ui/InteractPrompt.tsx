@@ -1,4 +1,5 @@
 import { HOTSPOTS } from '../data/hotspots'
+import { L } from '../i18n'
 import { useVenueStore } from '../state/store'
 
 /**
@@ -50,7 +51,8 @@ export function InteractPrompt() {
             pointerEvents: 'none',
           }}
         >
-          <b style={{ color: 'var(--gold-bright)' }}>Press E</b> · {near.title}
+          <b style={{ color: 'var(--gold-bright)' }}>{L('Press E', 'Appuyez sur E')}</b> ·{' '}
+          {near.title}
         </div>
       )}
     </>
