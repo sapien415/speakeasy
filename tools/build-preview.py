@@ -249,7 +249,7 @@ hydrateImages();
 shareVideoSources();
 injectAmbient();
 injectChrome();
-nav(); misc(); forms(); hours(); packages();
+nav(); misc(); forms(); hours(); packages(); reels();
 showRoute('home');
 """
 router_js = router_js.replace("%%HREF2ROUTE%%", json.dumps(sorted(HREF2ROUTE.items())))
