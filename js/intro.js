@@ -1,7 +1,7 @@
 /* =========================================================================
    SPEAKEASY — home page only: "shhh" door intro, hero coin, hero parallax
    ========================================================================= */
-import { $, $$, reduceMotion, finePointer } from './site.js';
+import { $, $$, reduceMotion, finePointer, playWithSound } from './site.js';
 
 /* ---------- INTRO (slower) ---------- */
 const heroVideos = $$('.hero__video');
@@ -18,24 +18,21 @@ const paintSound = () => {
   heroSound.classList.toggle('is-on', on);
 };
 
-/* Autoplay with sound is only permitted off a user gesture. Entering through
-   the doors is one, so that path gets audio; the 7s auto-open and returning
-   visitors do not, and fall back to muted with the toggle offered. */
-const playHero = (withSound = false) => {
+/* playWithSound() asks for audio and, if the browser refuses, keeps the
+   picture running silently and lifts the mute on the first gesture that
+   arrives — so entering through the doors, the 7s auto-open and a return
+   visit all end up with sound, just at different moments. */
+const playHero = () => {
   if (reduceMotion) return;
   heroVideos.forEach(v => {
     const show = () => v.classList.add('is-playing');
     v.addEventListener('playing', show, { once: true });
     v.addEventListener('loadeddata', show, { once: true });
     v.currentTime = 0;
-  });
-  if (heroBg) { heroBg.muted = true; heroBg.play().catch(() => {}); }  // backdrop stays silent
-  if (!heroMain) return;
-  heroMain.muted = !withSound;
-  heroMain.play().then(paintSound).catch(() => {
-    heroMain.muted = true;                     // blocked without a gesture
-    heroMain.play().catch(() => {});
-    paintSound();
+    // Both layers are the same clip, so only the front one carries the sound —
+    // the blurred backdrop stays silent or we'd hear it twice.
+    if (v === heroMain) playWithSound(v).then(show, () => {}).finally(paintSound);
+    else { v.muted = true; v.play().then(show).catch(() => {}); }
   });
 };
 
@@ -59,22 +56,22 @@ paintSound();
   if (seen) { el.classList.add('is-gone'); unlock(); playHero(); return; }
   body.classList.add('locked');
 
-  const finish = (withSound = false) => {
+  const finish = () => {
     if (done) return; done = true;
     sessionStorage.setItem('se_seen', '1');
     if (reduceMotion) {
       el.style.transition = 'opacity .5s ease'; el.style.opacity = '0';
-      setTimeout(() => { el.classList.add('is-gone'); unlock(); playHero(withSound); }, 520); return;
+      setTimeout(() => { el.classList.add('is-gone'); unlock(); playHero(); }, 520); return;
     }
-    el.classList.add('is-open'); unlock(); playHero(withSound);
+    el.classList.add('is-open'); unlock(); playHero();
     setTimeout(() => el.classList.add('is-gone'), 3000);   // matches slower door swing
   };
 
-  $('.intro__enter', el)?.addEventListener('click', () => finish(true));
-  $('.intro__skip', el)?.addEventListener('click', () => finish(true));
-  el.addEventListener('click', (e) => { if (e.target === el) finish(true); });
-  addEventListener('keydown', (e) => { if ((e.key === 'Escape' || e.key === 'Enter') && !done && !el.classList.contains('is-gone')) finish(true); });
-  setTimeout(() => finish(false), reduceMotion ? 1600 : 7000);  // no gesture: stays muted          // slower auto-enter
+  $('.intro__enter', el)?.addEventListener('click', finish);
+  $('.intro__skip', el)?.addEventListener('click', finish);
+  el.addEventListener('click', (e) => { if (e.target === el) finish(); });
+  addEventListener('keydown', (e) => { if ((e.key === 'Escape' || e.key === 'Enter') && !done && !el.classList.contains('is-gone')) finish(); });
+  setTimeout(finish, reduceMotion ? 1600 : 7000);          // slower auto-enter
 })();
 
 /* ---------- HERO 3D COIN ---------- */
